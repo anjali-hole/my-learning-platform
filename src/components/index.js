@@ -1,9 +1,10 @@
 export { default as GameHUD } from './game/GameHUD';
 export { default as EnhancedModule } from './game/EnhancedModule';
 export { default as QuestSystem } from './game/QuestSystem';
-export { default as AchievementSection } from './game/AchievementSection';
+export { default as AchievementSystem } from './game/AchievementSystem';
+export { default as AcheivementSection} from './game/AcheivementSection';
 export { default as ProgressBar } from './ui/ProgressBar';
-export { default as Badge } from './Badge';
+export { default as Badge } from './Badge.js';
 export { default as Card } from './Card';
 export { default as LeaderboardCard } from './LeaderboardCard';
 export { default as ModuleContent } from './ModuleContent';

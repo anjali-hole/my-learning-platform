@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { GameProvider } from './contexts/GameContext';
 import { useGame } from './contexts/GameContext';
-import { ProgressBar } from './components';
+import { AchievementSection, AchievementSystem, ProgressBar, QuestSystem } from './components';
 
 // Sample Data and Constants
 const QUIZ_DATA = {
@@ -890,8 +890,8 @@ const MainApp = () => {
         ) : (
           <>
             {activeView === 'dashboard' && <StudentDashboard />}
-            {activeView === 'quests' && <div>Quest System Content</div>}
-            {activeView === 'achievements' && <div>Achievement System Content</div>}
+            {activeView === 'quests' && <QuestSystem/>}
+            {activeView === 'achievements' && <AchievementSystem/>}
           </>
         )}
       </main>

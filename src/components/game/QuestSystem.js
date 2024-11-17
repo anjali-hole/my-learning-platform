@@ -1,296 +1,209 @@
-// src/components/game/QuestSystem.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Scroll, 
-  CheckCircle, 
-  Calendar, 
-  Clock, 
-  Trophy, 
-  Star,
-  ChevronRight,
-  AlertCircle 
+  Star, 
+  Trophy,
+  Play,
+  Clock,
+  Coins
 } from 'lucide-react';
-import { useGame } from '../../contexts/GameContext';
-import { QUEST_TYPES } from '../../constants/gameConstants';
 import ProgressBar from '../ui/ProgressBar';
 
-const QuestRewards = ({ rewards }) => {
-  return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {rewards.experience && (
-        <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm flex items-center gap-1">
-          <Star className="h-4 w-4" />
-          {rewards.experience} XP
-        </div>
-      )}
-      {rewards.skillPoints && (
-        <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-1">
-          <Trophy className="h-4 w-4" />
-          {rewards.skillPoints} Skill Points
-        </div>
-      )}
-      {rewards.items?.map((item, index) => (
-        <div 
-          key={index} 
-          className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
-        >
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-};
 
-const QuestDeadline = ({ deadline }) => {
-  const timeRemaining = deadline - Date.now();
-  const hoursRemaining = Math.max(0, Math.floor(timeRemaining / (1000 * 60 * 60)));
+const QuestSystem = () => {
+  const [activeQuestType, setActiveQuestType] = useState('daily');
   
-  return (
-    <div className="mt-2 flex items-center gap-2 text-sm">
-      <Clock className="h-4 w-4 text-gray-400" />
-      {hoursRemaining > 0 ? (
-        <span className="text-gray-600">
-          {hoursRemaining} hours remaining
-        </span>
-      ) : (
-        <span className="text-red-500 flex items-center gap-1">
-          <AlertCircle className="h-4 w-4" />
-          Expired
-        </span>
-      )}
-    </div>
-  );
-};
+  const quests = {
+    daily: [
+      {
+        id: 1,
+        title: "Chemistry Champion",
+        description: "Complete 3 chemistry modules today",
+        progress: 2,
+        total: 3,
+        rewards: {
+          xp: 150,
+          items: ["Chemistry Badge", "Bonus Quiz Power-up"],
+          currency: 50
+        },
+        timeLeft: "5 hours",
+        type: "daily",
+        difficulty: "medium"
+      },
+      {
+        id: 2,
+        title: "Perfect Score Streak",
+        description: "Get 100% on 2 quizzes",
+        progress: 1,
+        total: 2,
+        rewards: {
+          xp: 200,
+          items: ["Quiz Master Badge"],
+          currency: 75
+        },
+        timeLeft: "8 hours",
+        type: "daily",
+        difficulty: "hard"
+      }
+    ],
+    weekly: [
+      {
+        id: 3,
+        title: "Element Explorer",
+        description: "Study all elements in Group 1",
+        progress: 4,
+        total: 6,
+        rewards: {
+          xp: 500,
+          items: ["Periodic Master Badge", "Rare Element Card"],
+          currency: 150
+        },
+        timeLeft: "3 days",
+        type: "weekly",
+        difficulty: "medium"
+      }
+    ],
+    storyline: [
+      {
+        id: 4,
+        title: "The Atomic Mystery",
+        description: "Uncover the secrets of atomic structure",
+        chapter: 1,
+        progress: 2,
+        total: 5,
+        rewards: {
+          xp: 1000,
+          items: ["Atomic Sage Title", "Special Lab Equipment"],
+          currency: 300
+        },
+        type: "storyline",
+        difficulty: "epic"
+      }
+    ]
+  };
 
-const QuestObjectives = ({ objectives, onObjectiveComplete }) => {
-  return (
-    <div className="space-y-2 my-4">
-      {objectives.map((objective, index) => (
-        <div 
-          key={index} 
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-          onClick={() => onObjectiveComplete?.(index)}
-        >
-          <div 
-            className={`
-              w-5 h-5 rounded-full flex items-center justify-center
-              ${objective.completed 
-                ? 'bg-green-500' 
-                : objective.inProgress
-                  ? 'bg-yellow-200'
-                  : 'bg-gray-200'
-              }
-            `}
-          >
-            {objective.completed && <CheckCircle className="h-3 w-3 text-white" />}
+  const QuestCard = ({ quest }) => {
+    const difficultyColors = {
+      easy: 'bg-green-100 text-green-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      hard: 'bg-red-100 text-red-800',
+      epic: 'bg-purple-100 text-purple-800'
+    };
+
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-bold">{quest.title}</h3>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[quest.difficulty]}`}>
+                {quest.difficulty.charAt(0).toUpperCase() + quest.difficulty.slice(1)}
+              </span>
+            </div>
+            <p className="text-gray-600">{quest.description}</p>
           </div>
-          <div className="flex-grow">
-            <span className={`text-sm ${objective.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-              {objective.description}
-            </span>
-            {objective.progress !== undefined && (
-              <div className="mt-1">
-                <ProgressBar 
-                  value={objective.progress} 
-                  color={
-                    objective.completed ? 'green' :
-                    objective.inProgress ? 'yellow' :
-                    'blue'
-                  }
-                  size="small"
-                />
-              </div>
-            )}
-          </div>
-          {objective.reward && (
-            <div className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-              +{objective.reward}
+          {quest.timeLeft && (
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <Clock className="h-4 w-4" />
+              {quest.timeLeft}
             </div>
           )}
         </div>
-      ))}
-    </div>
-  );
-};
 
-const QuestCard = ({ quest, onAccept, onComplete, onObjectiveComplete }) => {
-  const getTypeStyle = (type) => {
-    switch (type) {
-      case QUEST_TYPES.STORY:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case QUEST_TYPES.CHALLENGE:
-        return 'bg-red-100 text-red-800 border-red-200';
-      case QUEST_TYPES.TEAM:
-        return 'bg-green-100 text-green-800 border-green-200';
-      case QUEST_TYPES.EXPLORATION:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const isCompleted = quest.objectives?.every(obj => obj.completed);
-  const progress = quest.objectives
-    ? (quest.objectives.filter(obj => obj.completed).length / quest.objectives.length) * 100
-    : 0;
-
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-gray-100 hover:border-blue-200 transition-all">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-grow">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-bold text-lg">{quest.title}</h3>
-            <span className={`px-3 py-1 rounded-full text-sm ${getTypeStyle(quest.type)}`}>
-              {quest.type}
-            </span>
+        <div className="mb-4">
+          <div className="flex justify-between text-sm mb-1">
+            <span>Progress</span>
+            <span>{quest.progress}/{quest.total}</span>
           </div>
-          <p className="text-gray-600">{quest.description}</p>
-          {quest.deadline && <QuestDeadline deadline={quest.deadline} />}
-        </div>
-      </div>
-
-      <QuestObjectives 
-        objectives={quest.objectives} 
-        onObjectiveComplete={onObjectiveComplete} 
-      />
-
-      {quest.rewards && <QuestRewards rewards={quest.rewards} />}
-
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex-grow">
           <ProgressBar 
-            value={progress} 
-            color={isCompleted ? 'green' : 'blue'} 
+            value={(quest.progress / quest.total) * 100} 
+            color={quest.type === 'storyline' ? 'purple' : 'blue'}
           />
-          <p className="text-sm text-gray-500 mt-1">
-            {Math.round(progress)}% Complete
-          </p>
         </div>
-        
-        <div className="ml-4">
-          {!quest.started && !quest.completed && (
-            <button
-              onClick={() => onAccept?.(quest)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              Accept Quest
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-          {quest.started && !quest.completed && (
-            <button
-              onClick={() => onComplete?.(quest)}
-              className={`
-                px-4 py-2 rounded-lg transition-colors flex items-center gap-2
-                ${isCompleted 
-                  ? 'bg-green-500 text-white hover:bg-green-600' 
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
-              `}
-              disabled={!isCompleted}
-            >
-              Complete Quest
-              {isCompleted && <Trophy className="h-4 w-4" />}
-            </button>
-          )}
-          {quest.completed && (
-            <span className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Completed
-            </span>
-          )}
+
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Rewards:</div>
+          <div className="flex flex-wrap gap-2">
+            {quest.rewards.xp && (
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm flex items-center gap-1">
+                <Star className="h-4 w-4" />
+                {quest.rewards.xp} XP
+              </span>
+            )}
+            {quest.rewards.currency && (
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm flex items-center gap-1">
+                <Coins className="h-4 w-4" />
+                {quest.rewards.currency} Coins
+              </span>
+            )}
+            {quest.rewards.items?.map((item, index) => (
+              <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
+
+        <button 
+          className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+                     transition-colors flex items-center justify-center gap-2"
+        >
+          {quest.progress === quest.total ? (
+            <>
+              <Trophy className="h-4 w-4" />
+              Claim Rewards
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4" />
+              Continue Quest
+            </>
+          )}
+        </button>
       </div>
-    </div>
-  );
-};
-
-const QuestSystem = ({ player, quests, onQuestProgress, onQuestComplete }) => {
-  const [activeTab, setActiveTab] = useState('available');
-  const { dispatch } = useGame();
-
-  const handleObjectiveComplete = (questId, objectiveIndex) => {
-    dispatch({
-      type: 'UPDATE_QUEST_OBJECTIVE',
-      payload: {
-        questId,
-        objectiveIndex,
-        completed: true
-      }
-    });
+    );
   };
 
-  const tabs = [
-    { id: 'available', label: 'Available', count: quests?.filter(q => !q.started && !q.completed).length },
-    { id: 'active', label: 'In Progress', count: quests?.filter(q => q.started && !q.completed).length },
-    { id: 'completed', label: 'Completed', count: quests?.filter(q => q.completed).length }
-  ];
-
   return (
-    <div className="bg-gray-50 p-6 rounded-xl">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <Scroll className="h-6 w-6 text-blue-500" />
-          <h2 className="text-2xl font-bold">Quest Journal</h2>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Quests</h2>
         <div className="flex gap-2">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                px-4 py-2 rounded-lg transition-colors flex items-center gap-2
-                ${activeTab === tab.id 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-white text-gray-600 hover:bg-gray-100'}
-              `}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className={`
-                  px-2 py-0.5 rounded-full text-sm
-                  ${activeTab === tab.id 
-                    ? 'bg-blue-400 text-white' 
-                    : 'bg-gray-100 text-gray-600'}
-                `}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveQuestType('daily')}
+            className={`px-4 py-2 rounded-lg transition-colors
+              ${activeQuestType === 'daily' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Daily
+          </button>
+          <button
+            onClick={() => setActiveQuestType('weekly')}
+            className={`px-4 py-2 rounded-lg transition-colors
+              ${activeQuestType === 'weekly' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Weekly
+          </button>
+          <button
+            onClick={() => setActiveQuestType('storyline')}
+            className={`px-4 py-2 rounded-lg transition-colors
+              ${activeQuestType === 'storyline' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Story
+          </button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {quests
-          ?.filter(quest => {
-            if (activeTab === 'available') return !quest.started && !quest.completed;
-            if (activeTab === 'active') return quest.started && !quest.completed;
-            return quest.completed;
-          })
-          .map(quest => (
-            <QuestCard
-              key={quest.id}
-              quest={quest}
-              onAccept={() => onQuestProgress?.(quest)}
-              onComplete={() => onQuestComplete?.(quest)}
-              onObjectiveComplete={(objectiveIndex) => 
-                handleObjectiveComplete(quest.id, objectiveIndex)
-              }
-            />
-          ))}
+      <div className="grid grid-cols-2 gap-6">
+        {quests[activeQuestType]?.map(quest => (
+          <QuestCard key={quest.id} quest={quest} />
+        ))}
       </div>
-
-      {quests?.filter(quest => 
-        activeTab === 'available' ? !quest.started && !quest.completed :
-        activeTab === 'active' ? quest.started && !quest.completed :
-        quest.completed
-      ).length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <p>No {activeTab} quests available</p>
-        </div>
-      )}
     </div>
   );
 };
-
 export default QuestSystem;

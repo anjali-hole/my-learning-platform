@@ -179,4 +179,4 @@ const AchievementSection = ({ achievements }) => {
   );
 };
 
-export default AchievementSection;
+export default  AchievementSection ;
