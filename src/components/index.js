@@ -3,3 +3,8 @@ export { default as EnhancedModule } from './game/EnhancedModule';
 export { default as QuestSystem } from './game/QuestSystem';
 export { default as AchievementSection } from './game/AchievementSection';
 export { default as ProgressBar } from './ui/ProgressBar';
+export { default as Badge } from './Badge';
+export { default as Card } from './Card';
+export { default as LeaderboardCard } from './LeaderboardCard';
+export { default as ModuleContent } from './ModuleContent';
+export { default as QuizView } from './QuizView';
