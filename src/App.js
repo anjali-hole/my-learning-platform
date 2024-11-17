@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { GameProvider } from './contexts/GameContext';
 import { useGame } from './contexts/GameContext';
-import { AchievementSection, AchievementSystem, ProgressBar, QuestSystem } from './components';
+import { StudentProgress, AchievementSection, AchievementSystem, ProgressBar, QuestSystem, ModuleManagement } from './components';
 
 // Sample Data and Constants
 const QUIZ_DATA = {
@@ -884,8 +884,8 @@ const MainApp = () => {
         {userRole === 'teacher' ? (
           <>
             {activeView === 'dashboard' && <TeacherDashboard />}
-            {activeView === 'modules' && <div>Module Management Content</div>}
-            {activeView === 'students' && <div>Student Progress Tracking Content</div>}
+            {activeView === 'modules' && <ModuleManagement/>}
+            {activeView === 'students' && <StudentProgress/>}
           </>
         ) : (
           <>
