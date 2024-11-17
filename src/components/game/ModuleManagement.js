@@ -2,6 +2,373 @@ import React, { useState } from 'react';
 import { Plus, Trophy, Play, FileText, CheckCircle, Edit, Users, Trash, Calendar, X} from 'lucide-react';
 import ProgressBar from '../ui/ProgressBar'; 
 
+const QuizManagement = () => {
+    const [selectedQuiz, setSelectedQuiz] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+  
+    const quizzes = [
+      {
+        id: 1,
+        title: "Chemical Bonds Quiz",
+        subject: "chemistry",
+        totalQuestions: 10,
+        timeLimit: 15, // minutes
+        attempts: 245,
+        averageScore: 82,
+        lastUpdated: "2024-11-15",
+        status: "active",
+        questions: [
+          {
+            id: 1,
+            type: "multiple-choice",
+            text: "What type of bond forms between atoms of similar electronegativity?",
+            options: ["Covalent bond", "Ionic bond", "Metallic bond", "Hydrogen bond"],
+            correct: 0,
+            explanation: "Atoms with similar electronegativity share electrons, forming covalent bonds."
+          },
+          // ... more questions
+        ],
+        settings: {
+          randomizeQuestions: true,
+          showExplanations: true,
+          passingScore: 70,
+          allowReview: true
+        }
+      }
+      // ... more quizzes
+    ];
+  
+    const QuizEditor = ({ quiz }) => {
+      const [quizData, setQuizData] = useState(quiz || {
+        title: '',
+        subject: '',
+        timeLimit: 15,
+        questions: [],
+        settings: {
+          randomizeQuestions: true,
+          showExplanations: true,
+          passingScore: 70,
+          allowReview: true
+        }
+      });
+  
+      const QuestionEditor = ({ question, onSave, onDelete }) => {
+        const [questionData, setQuestionData] = useState(question);
+  
+        return (
+          <div className="border-2 border-gray-100 rounded-lg p-4 space-y-4">
+            <div className="flex justify-between items-start">
+              <select
+                value={questionData.type}
+                onChange={(e) => setQuestionData({...questionData, type: e.target.value})}
+                className="px-3 py-1 border rounded-lg bg-white"
+              >
+                <option value="multiple-choice">Multiple Choice</option>
+                <option value="true-false">True/False</option>
+                <option value="short-answer">Short Answer</option>
+              </select>
+              <button
+                onClick={() => onDelete(question.id)}
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500"
+              >
+                <Trash className="h-4 w-4" />
+              </button>
+            </div>
+  
+            <textarea
+              value={questionData.text}
+              onChange={(e) => setQuestionData({...questionData, text: e.target.value})}
+              className="w-full p-2 border rounded-lg"
+              placeholder="Enter question text"
+              rows={3}
+            />
+  
+            {questionData.type === 'multiple-choice' && (
+              <div className="space-y-2">
+                {questionData.options.map((option, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={idx === questionData.correct}
+                      onChange={() => setQuestionData({...questionData, correct: idx})}
+                    />
+                    <input
+                      type="text"
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...questionData.options];
+                        newOptions[idx] = e.target.value;
+                        setQuestionData({...questionData, options: newOptions});
+                      }}
+                      className="flex-grow p-2 border rounded-lg"
+                    />
+                    <button
+                      onClick={() => {
+                        const newOptions = questionData.options.filter((_, i) => i !== idx);
+                        setQuestionData({...questionData, options: newOptions});
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setQuestionData({
+                    ...questionData,
+                    options: [...questionData.options, '']
+                  })}
+                  className="text-blue-500 hover:text-blue-600 text-sm flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" /> Add Option
+                </button>
+              </div>
+            )}
+  
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Explanation
+              </label>
+              <textarea
+                value={questionData.explanation}
+                onChange={(e) => setQuestionData({...questionData, explanation: e.target.value})}
+                className="w-full p-2 border rounded-lg"
+                placeholder="Explain the correct answer"
+                rows={2}
+              />
+            </div>
+  
+            <button
+              onClick={() => onSave(questionData)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Save Question
+            </button>
+          </div>
+        );
+      };
+  
+      return (
+        <div className="space-y-6">
+          {/* Quiz Basic Info */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Quiz Title
+              </label>
+              <input
+                type="text"
+                value={quizData.title}
+                onChange={(e) => setQuizData({...quizData, title: e.target.value})}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subject
+              </label>
+              <select
+                value={quizData.subject}
+                onChange={(e) => setQuizData({...quizData, subject: e.target.value})}
+                className="w-full px-4 py-2 border rounded-lg bg-white"
+              >
+                <option value="chemistry">Chemistry</option>
+                <option value="physics">Physics</option>
+                <option value="biology">Biology</option>
+              </select>
+            </div>
+          </div>
+  
+          {/* Quiz Settings */}
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            <h3 className="font-bold">Quiz Settings</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Time Limit (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={quizData.timeLimit}
+                  onChange={(e) => setQuizData({...quizData, timeLimit: parseInt(e.target.value)})}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Passing Score (%)
+                </label>
+                <input
+                  type="number"
+                  value={quizData.settings.passingScore}
+                  onChange={(e) => setQuizData({
+                    ...quizData,
+                    settings: {...quizData.settings, passingScore: parseInt(e.target.value)}
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={quizData.settings.randomizeQuestions}
+                  onChange={(e) => setQuizData({
+                    ...quizData,
+                    settings: {...quizData.settings, randomizeQuestions: e.target.checked}
+                  })}
+                />
+                Randomize Questions
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={quizData.settings.showExplanations}
+                  onChange={(e) => setQuizData({
+                    ...quizData,
+                    settings: {...quizData.settings, showExplanations: e.target.checked}
+                  })}
+                />
+                Show Explanations
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={quizData.settings.allowReview}
+                  onChange={(e) => setQuizData({
+                    ...quizData,
+                    settings: {...quizData.settings, allowReview: e.target.checked}
+                  })}
+                />
+                Allow Review
+              </label>
+            </div>
+          </div>
+  
+          {/* Questions */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold">Questions</h3>
+              <button
+                onClick={() => {
+                  const newQuestion = {
+                    id: Date.now(),
+                    type: 'multiple-choice',
+                    text: '',
+                    options: ['', '', '', ''],
+                    correct: 0,
+                    explanation: ''
+                  };
+                  setQuizData({
+                    ...quizData,
+                    questions: [...quizData.questions, newQuestion]
+                  });
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Add Question
+              </button>
+            </div>
+            <div className="space-y-6">
+              {quizData.questions.map((question, index) => (
+                <QuestionEditor
+                  key={question.id}
+                  question={question}
+                  onSave={(updatedQuestion) => {
+                    const newQuestions = [...quizData.questions];
+                    newQuestions[index] = updatedQuestion;
+                    setQuizData({...quizData, questions: newQuestions});
+                  }}
+                  onDelete={(questionId) => {
+                    setQuizData({
+                      ...quizData,
+                      questions: quizData.questions.filter(q => q.id !== questionId)
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+  
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Quiz Management</h2>
+          <button
+            onClick={() => {
+              setSelectedQuiz(null);
+              setEditMode(true);
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Create Quiz
+          </button>
+        </div>
+  
+        {editMode ? (
+          <QuizEditor quiz={selectedQuiz} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {quizzes.map(quiz => (
+              <div
+                key={quiz.id}
+                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold">{quiz.title}</h3>
+                    <p className="text-sm text-gray-600">
+                      {quiz.totalQuestions} questions • {quiz.timeLimit} minutes
+                    </p>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium
+                    ${quiz.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {quiz.status}
+                  </div>
+                </div>
+  
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Attempts</p>
+                    <p className="text-xl font-bold">{quiz.attempts}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Avg. Score</p>
+                    <p className="text-xl font-bold">{quiz.averageScore}%</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Last Updated</p>
+                    <p className="text-xl font-bold">{quiz.lastUpdated}</p>
+                  </div>
+                </div>
+  
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      setSelectedQuiz(quiz);
+                      setEditMode(true);
+                    }}
+                    className="px-4 py-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                  >
+                    Edit
+                  </button>
+                  <button className="px-4 py-2 text-green-500 hover:bg-green-50 rounded-lg">
+                    View Results
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+
 const ModuleManagement = () => {
     const [activeTab, setActiveTab] = useState('modules');
     const [selectedModule, setSelectedModule] = useState(null);
@@ -386,8 +753,7 @@ const ModuleManagement = () => {
         
         {activeTab === 'quizzes' && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold">Quiz Management</h2>
-            {/* Quiz management content */}
+            {/* Quiz management content */}<QuizManagement/>
           </div>
         )}
         
