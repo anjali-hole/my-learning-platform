@@ -51,23 +51,108 @@ export const gameReducer = (state, action) => {
       };
   
       case 'COMPLETE_QUIZ':
-        const newLevel = calculateLevel(
-          state.player.experience + action.payload.experience
-        );
-        
-        return {
-          ...state,
-          player: {
-            ...state.player,
-            level: newLevel,
-            experience: state.player.experience + action.payload.experience,
-            skillPoints: state.player.skillPoints + action.payload.skillPoints,
-            achievements: [
-              ...state.player.achievements,
-              ...action.payload.achievements
-            ]
+      const { 
+        quizId, 
+        score, 
+        achievements, 
+        timeSpent, 
+        streak, 
+        powerupsUsed,
+        moduleId 
+      } = action.payload;
+
+      // Calculate XP and progress gains
+      const baseXP = score * 10;
+      const streakBonus = streak * 5;
+      const timeBonus = Math.max(0, (300 - timeSpent) * 2);
+      const totalXP = baseXP + streakBonus + timeBonus;
+
+      // Calculate module progress increase
+      const moduleProgress = Math.min(
+        (score / 100) * 25, // Max 25% progress per quiz
+        100 - state.modules.find(m => m.id === moduleId).progress
+      );
+
+      // Update relevant stats and progress
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          experience: state.player.experience + totalXP,
+          level: calculateLevel(state.player.experience + totalXP),
+          quizStats: {
+            ...state.player.quizStats,
+            totalAttempts: state.player.quizStats.totalAttempts + 1,
+            perfectScores: score === 100 ? 
+              state.player.quizStats.perfectScores + 1 : 
+              state.player.quizStats.perfectScores,
+            averageScore: 
+              ((state.player.quizStats.averageScore * state.player.quizStats.totalAttempts) + score) / 
+              (state.player.quizStats.totalAttempts + 1),
+            streakRecord: Math.max(state.player.quizStats.streakRecord, streak),
+            powerupsUsed: state.player.quizStats.powerupsUsed + powerupsUsed,
+            timeRecords: {
+              ...state.player.quizStats.timeRecords,
+              [quizId]: Math.min(
+                timeSpent,
+                state.player.quizStats.timeRecords[quizId] || Infinity
+              )
+            }
           }
-        };
+        },
+        modules: state.modules.map(module =>
+          module.id === moduleId
+            ? {
+                ...module,
+                progress: module.progress + moduleProgress
+              }
+            : module
+        )
+      };
+
+    case 'UNLOCK_ACHIEVEMENT':
+      const { achievement, rewards } = action.payload;
+      
+      // Process rewards
+      const processedRewards = {
+        experience: rewards.experience || 0,
+        powerups: rewards.powerups || {},
+        boosters: rewards.boosters || {},
+        items: rewards.items || []
+      };
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          experience: state.player.experience + processedRewards.experience,
+          inventory: {
+            ...state.player.inventory,
+            powerups: {
+              ...state.player.inventory.powerups,
+              ...Object.fromEntries(
+                Object.entries(processedRewards.powerups).map(([key, value]) => [
+                  key,
+                  (state.player.inventory.powerups[key] || 0) + value
+                ])
+              )
+            },
+            boosters: {
+              ...state.player.inventory.boosters,
+              ...Object.fromEntries(
+                Object.entries(processedRewards.boosters).map(([key, value]) => [
+                  key,
+                  (state.player.inventory.boosters[key] || 0) + value
+                ])
+              )
+            }
+          },
+          achievementsUnlocked: [
+            ...state.player.achievementsUnlocked,
+            achievement.id
+          ]
+        }
+      };
   
       case 'UNLOCK_REGION':
         return {
