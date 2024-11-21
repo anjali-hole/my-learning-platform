@@ -9,5 +9,6 @@ export { default as ProgressBar } from './ui/ProgressBar';
 export { default as Badge } from './Badge.js';
 export { default as Card } from './Card';
 export { default as LeaderboardCard } from './LeaderboardCard';
+export { default as LeaderboardPage } from './LeaderboardPage';
 export { default as ModuleContent } from './ModuleContent';
 export { default as QuizView } from './QuizView';

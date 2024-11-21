@@ -4,7 +4,8 @@ import {
   Trophy,
   Play,
   Clock,
-  Coins
+  Coins,
+  TargetIcon
 } from 'lucide-react';
 import ProgressBar from '../ui/ProgressBar';
 

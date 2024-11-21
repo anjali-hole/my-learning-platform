@@ -20,11 +20,12 @@ import {
   Target,
   Beaker,
   FileText,
-  X
+  X,
+  TargetIcon
 } from 'lucide-react';
 import { GameProvider } from './contexts/GameContext';
 import { useGame } from './contexts/GameContext';
-import { StudentProgress, AchievementSection, AchievementSystem, ProgressBar, QuestSystem, ModuleManagement } from './components';
+import { StudentProgress, AchievementSection, AchievementSystem, ProgressBar, QuestSystem, ModuleManagement, LeaderboardPage } from './components';
 
 // Sample Data and Constants
 const QUIZ_DATA = {
@@ -138,6 +139,7 @@ const Quiz = ({ quiz, onComplete }) => {
   };
 
   const question = quiz.questions[currentQuestion];
+
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg max-w-3xl mx-auto">
@@ -270,7 +272,6 @@ const QuizResults = ({ score, answers, quiz }) => (
   </div>
 );
 
-// ... continuing App.js
 
 const StudentDashboard = () => {
   const [selectedModule, setSelectedModule] = useState(null);
@@ -285,6 +286,14 @@ const StudentDashboard = () => {
     setSelectedQuiz(quiz);
     setShowQuiz(true);
   };
+
+  const leaderboardData = [
+    { rank: 1, name: "Emma Thompson", points: 2850, badges: ["Top Contributor", "Quiz Master"] },
+    { rank: 2, name: "James Wilson", points: 2720, badges: ["Lab Expert"] },
+    { rank: 3, name: "Sarah Chen", points: 2680, badges: ["Team Player"] },
+    { rank: 4, name: "Miguel Rodriguez", points: 2540, badges: ["Fast Learner"] },
+    { rank: 5, name: "Alex Kim", points: 2490, badges: ["Problem Solver"] }
+  ];
 
   return (
     <div className="space-y-6">
@@ -762,7 +771,7 @@ const Navigation = ({ userRole, onRoleChange, activeView, setActiveView }) => (
                 className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-2
                   ${activeView === 'quests' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:bg-gray-800'}`}
               >
-                <Trophy className="h-4 w-4" />
+                <TargetIcon className="h-4 w-4" />
                 Quests
               </button>
             </li>
@@ -774,6 +783,14 @@ const Navigation = ({ userRole, onRoleChange, activeView, setActiveView }) => (
               >
                 <Medal className="h-4 w-4" />
                 Achievements
+              </button>
+              <button
+                onClick={() => setActiveView('leaderboard')}
+                className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-2
+                  ${activeView === 'leaderboard' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:bg-gray-800'}`}
+              >
+                <Trophy className="h-4 w-4" />
+                Leaderboard
               </button>
             </li>
           </>
@@ -892,6 +909,7 @@ const MainApp = () => {
             {activeView === 'dashboard' && <StudentDashboard />}
             {activeView === 'quests' && <QuestSystem/>}
             {activeView === 'achievements' && <AchievementSystem/>}
+            {activeView === 'leaderboard' && <LeaderboardPage />}
           </>
         )}
       </main>
